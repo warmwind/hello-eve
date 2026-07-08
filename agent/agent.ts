@@ -11,4 +11,9 @@ export default defineAgent({
   // DeepSeek maps claude-sonnet* model names onto its own model.
   model: deepseekAnthropic("claude-sonnet-4-5"),
   modelContextWindowTokens: 200_000,
+  experimental: {
+    workflow: {
+      world: "@workflow/world-postgres",
+    },
+  },
 });
