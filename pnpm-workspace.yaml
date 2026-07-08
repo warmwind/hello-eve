@@ -1,0 +1,5 @@
+allowBuilds:
+  '@mongodb-js/zstd': true
+  node-liblzma: true
+overrides:
+  ai: 7.0.11
