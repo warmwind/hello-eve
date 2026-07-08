@@ -1,5 +1,6 @@
 allowBuilds:
   '@mongodb-js/zstd': true
+  cbor-extract: true
   node-liblzma: true
 overrides:
   ai: 7.0.11
