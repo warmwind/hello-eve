@@ -18,10 +18,12 @@
     "ai": "7.0.11",
     "eve": "0.18.1",
     "just-bash": "3.0.2",
+    "pg": "8.20.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/node": "24.13.2",
+    "@types/pg": "8.20.0",
     "typescript": "6.0.3"
   },
   "overrides": {
