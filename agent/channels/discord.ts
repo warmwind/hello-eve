@@ -11,8 +11,6 @@ export default discordChannel({
     botToken: () => process.env.DISCORD_BOT_TOKEN ?? "",
     publicKey: () => process.env.DISCORD_PUBLIC_KEY ?? "",
   },
-  // channel_id is carried into auth attributes so create_schedule can record
-  // where a proactive reminder should be delivered later.
   onCommand: (_ctx, interaction) => ({
     auth: {
       principalId: interaction.user.id,
