@@ -1,16 +1,52 @@
-import { discordChannel } from "eve/channels/discord";
+import {
+  DISCORD_EPHEMERAL_MESSAGE_FLAG,
+  DISCORD_INTERACTION_RESPONSE_TYPE,
+  discordChannel,
+  parseDiscordInteraction,
+  verifyDiscordRequest,
+  type DiscordChannel,
+} from "eve/channels/discord";
+import {
+  getDiscordAccessStatus,
+  startDiscordAuthorization,
+  type DiscordAccessStatus,
+} from "../../lib/jinshuju/auth.js";
 
-// Outbound bot-token calls (typing + proactive channel posts) read botToken
-// ONLY from the channel's `credentials` — eve does not fall back to
-// DISCORD_BOT_TOKEN here (the env fallback only covers inbound verification).
-// Passing lazy functions defers the env read to call time, so it works
-// regardless of when dotenv populates process.env.
-export default discordChannel({
-  credentials: {
-    applicationId: () => process.env.DISCORD_APPLICATION_ID ?? "",
-    botToken: () => process.env.DISCORD_BOT_TOKEN ?? "",
-    publicKey: () => process.env.DISCORD_PUBLIC_KEY ?? "",
-  },
+const credentials = {
+  applicationId: () => process.env.DISCORD_APPLICATION_ID ?? "",
+  botToken: () => process.env.DISCORD_BOT_TOKEN ?? "",
+  publicKey: () => process.env.DISCORD_PUBLIC_KEY ?? "",
+};
+
+function accessMessage(access: DiscordAccessStatus, authorizationUrl: string): string {
+  if (access.status === "forbidden") {
+    return [
+      `⛔ 当前金数据用户 ID：${access.identity.userId}`,
+      `当前企业账户：${access.identity.billingAccountName}`,
+      "此 Agent 仅限 billing_account.name 为 im 的用户使用。",
+      `如需切换金数据账号，请重新授权：${authorizationUrl}`,
+    ].join("\n");
+  }
+  return [
+    "🔐 使用此 Agent 前需要先授权金数据账号。",
+    authorizationUrl,
+    "授权完成后会显示当前金数据用户 ID；请随后重新发送原请求。",
+  ].join("\n");
+}
+
+function ephemeralResponse(content: string): Response {
+  return Response.json({
+    type: DISCORD_INTERACTION_RESPONSE_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
+    data: {
+      content,
+      flags: DISCORD_EPHEMERAL_MESSAGE_FLAG,
+      allowed_mentions: { parse: [] },
+    },
+  });
+}
+
+const channel = discordChannel({
+  credentials,
   onCommand: (_ctx, interaction) => ({
     auth: {
       principalId: interaction.user.id,
@@ -23,3 +59,54 @@ export default discordChannel({
     },
   }),
 });
+
+const commandRoute = channel.routes[0];
+if (!commandRoute || commandRoute.transport === "websocket") {
+  throw new Error("Discord command route is unavailable.");
+}
+const handleVerifiedCommand = commandRoute.handler;
+
+const gatedRoute = {
+  ...commandRoute,
+  handler: async (req: Request, args: Parameters<typeof handleVerifiedCommand>[1]) => {
+    let rawBody: string;
+    try {
+      rawBody = await verifyDiscordRequest(req.clone(), {
+        publicKey: credentials.publicKey,
+      });
+    } catch {
+      return handleVerifiedCommand(req, args);
+    }
+
+    let interaction;
+    try {
+      interaction = parseDiscordInteraction(JSON.parse(rawBody) as unknown);
+    } catch {
+      return handleVerifiedCommand(req, args);
+    }
+    if (!interaction) {
+      return handleVerifiedCommand(req, args);
+    }
+
+    try {
+      const access = await getDiscordAccessStatus(interaction.user.id);
+      if (access.status === "authorized") {
+        return handleVerifiedCommand(req, args);
+      }
+      const authorizationUrl = await startDiscordAuthorization({
+        discordUserId: interaction.user.id,
+        discordApplicationId: interaction.applicationId,
+        discordInteractionToken: interaction.token,
+      });
+      return ephemeralResponse(accessMessage(access, authorizationUrl));
+    } catch (error) {
+      console.error("[jinshuju] access gate failed:", error);
+      return ephemeralResponse("金数据授权服务暂时不可用，请稍后重试。");
+    }
+  },
+};
+
+export default {
+  ...channel,
+  routes: [gatedRoute],
+} satisfies DiscordChannel;

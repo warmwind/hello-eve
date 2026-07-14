@@ -38,6 +38,40 @@ curl -X POST http://localhost:3000/eve/v1/session \
   -d '{"message":"Reply with exactly: pong"}'
 ```
 
+## Jinshuju (金数据) access gate
+
+Every Discord user must authorize a Jinshuju account before the agent handles
+their request. OAuth runs against `account.jinshuju.net`; after the callback,
+the agent reads the current identity from Jinshuju's REST API and grants access
+only when `billing_account.name` is `im`.
+
+How the flow works:
+
+1. The Discord command gate checks the caller's stored authorization. A new or
+   expired authorization makes the agent return only a private sign-in link
+   generated with PKCE S256.
+2. The user signs in on account.jinshuju.net and consents. The provider
+   redirects to the registered `/oauth/jinshuju/callback` route.
+3. The callback exchanges the code, calls `GET /api/v1/me` and
+   `GET /api/v1/billing_account`, and stores the user-scoped result in
+   Postgres. Discord and the browser both display the current Jinshuju user ID.
+   Users outside the `im` billing account remain blocked.
+
+Setup:
+
+1. Register an application on account.jinshuju.net (`/oauth/applications`,
+   needs an oauth-admin account): redirect_uri
+   `<public base URL>/oauth/jinshuju/callback`, scopes `public users`.
+2. Fill `JINSHUJU_CLIENT_ID`, `JINSHUJU_CLIENT_SECRET`,
+   `JINSHUJU_REDIRECT_URI`, and a reachable Postgres URL in `.env` (see
+   `.env.example`).
+3. Set `JINSHUJU_ALLOWED_BILLING_ACCOUNT=im`. The application defaults to
+   `im`, but an explicit deployment value keeps the access policy visible.
+
+Scope changes are handled automatically: a stored token granted under a
+narrower scope set than `JINSHUJU_OAUTH_SCOPES` triggers a fresh consent
+instead of allowing the request through.
+
 ## Workflow world
 
 This project uses eve's built-in **local** world, so no database is required —

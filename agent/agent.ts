@@ -12,8 +12,11 @@ export default defineAgent({
   model: deepseekAnthropic("claude-sonnet-4-5"),
   modelContextWindowTokens: 200_000,
   experimental: {
-    workflow: {
-      world: "@workflow/world-postgres",
-    },
+    // The Postgres world is for self-hosting only: WORKFLOW_POSTGRES_URL is a
+    // local tunnel cloud runtimes cannot reach. On Vercel, leaving `world`
+    // unset selects the managed Vercel Workflow.
+    ...(process.env.VERCEL
+      ? {}
+      : { workflow: { world: "@workflow/world-postgres" } }),
   },
 });

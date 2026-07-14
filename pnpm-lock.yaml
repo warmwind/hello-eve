@@ -16,20 +16,26 @@ importers:
         version: 4.0.5(zod@4.4.3)
       '@workflow/world-postgres':
         specifier: 5.0.0-beta.20
-        version: 5.0.0-beta.20(@types/pg@8.20.0)(sql.js@1.14.1)(typescript@6.0.3)
+        version: 5.0.0-beta.20(@types/pg@8.15.4)(sql.js@1.14.1)(typescript@6.0.3)
       ai:
         specifier: 7.0.11
         version: 7.0.11(zod@4.4.3)
       eve:
         specifier: 0.18.1
-        version: 0.18.1(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2)
+        version: 0.18.1(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2)
       just-bash:
         specifier: 3.0.2
         version: 3.0.2
+      pg:
+        specifier: 8.20.0
+        version: 8.20.0
     devDependencies:
       '@types/node':
         specifier: 24.13.2
         version: 24.13.2
+      '@types/pg':
+        specifier: 8.15.4
+        version: 8.15.4
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -270,6 +276,9 @@ packages:
 
   '@types/node@24.13.2':
     resolution: {integrity: sha512-fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA==}
+
+  '@types/pg@8.15.4':
+    resolution: {integrity: sha512-I6UNVBAoYbvuWkkU3oosC8yxqH21f4/Jc4DK71JLG3dT2mdlGe1z+ep/LQGXaKaOgcvUrsQoPRqfgtMcvZiJhg==}
 
   '@types/pg@8.20.0':
     resolution: {integrity: sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow==}
@@ -1348,6 +1357,12 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
+  '@types/pg@8.15.4':
+    dependencies:
+      '@types/node': 24.13.2
+      pg-protocol: 1.15.0
+      pg-types: 2.2.0
+
   '@types/pg@8.20.0':
     dependencies:
       '@types/node': 24.13.2
@@ -1387,7 +1402,7 @@ snapshots:
       undici: 7.28.0
       zod: 4.3.6
 
-  '@workflow/world-postgres@5.0.0-beta.20(@types/pg@8.20.0)(sql.js@1.14.1)(typescript@6.0.3)':
+  '@workflow/world-postgres@5.0.0-beta.20(@types/pg@8.15.4)(sql.js@1.14.1)(typescript@6.0.3)':
     dependencies:
       '@vercel/queue': 0.3.1
       '@workflow/errors': 5.0.0-beta.8
@@ -1396,7 +1411,7 @@ snapshots:
       '@workflow/world-local': 5.0.0-beta.22
       cbor-x: 1.6.0
       dotenv: 17.3.1
-      drizzle-orm: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1)
+      drizzle-orm: 0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1)
       graphile-worker: 0.16.6(typescript@6.0.3)
       pg: 8.20.0
       ulid: 3.0.2
@@ -1535,9 +1550,9 @@ snapshots:
     optionalDependencies:
       srvx: 0.11.21
 
-  db0@0.3.4(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1)):
+  db0@0.3.4(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1)):
     optionalDependencies:
-      drizzle-orm: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1)
+      drizzle-orm: 0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1)
 
   debug@4.4.3:
     dependencies:
@@ -1558,9 +1573,9 @@ snapshots:
 
   dotenv@17.3.1: {}
 
-  drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1):
+  drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1):
     optionalDependencies:
-      '@types/pg': 8.20.0
+      '@types/pg': 8.15.4
       pg: 8.20.0
       sql.js: 1.14.1
 
@@ -1586,10 +1601,10 @@ snapshots:
 
   escalade@3.2.0: {}
 
-  eve@0.18.1(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2):
+  eve@0.18.1(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2):
     dependencies:
       ai: 7.0.11(zod@4.4.3)
-      nitro: 3.0.260610-beta(@vercel/queue@0.3.1)(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1))
+      nitro: 3.0.260610-beta(@vercel/queue@0.3.1)(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1))
     optionalDependencies:
       just-bash: 3.0.2
     transitivePeerDependencies:
@@ -1797,11 +1812,11 @@ snapshots:
 
   nf3@0.3.19: {}
 
-  nitro@3.0.260610-beta(@vercel/queue@0.3.1)(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1)):
+  nitro@3.0.260610-beta(@vercel/queue@0.3.1)(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1)):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.9(srvx@0.11.21)
-      db0: 0.3.4(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1))
+      db0: 0.3.4(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1))
       env-runner: 0.1.16(@vercel/queue@0.3.1)
       h3: 2.0.1-rc.22(crossws@0.4.9(srvx@0.11.21))
       hookable: 6.1.1
@@ -1812,7 +1827,7 @@ snapshots:
       rolldown: 1.1.4
       srvx: 0.11.21
       unenv: 2.0.0-rc.24
-      unstorage: 2.0.0-alpha.7(db0@0.3.4(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1)))(ofetch@2.0.0-alpha.3)
+      unstorage: 2.0.0-alpha.7(db0@0.3.4(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1)))(ofetch@2.0.0-alpha.3)
     optionalDependencies:
       '@vercel/queue': 0.3.1
       dotenv: 17.3.1
@@ -2136,9 +2151,9 @@ snapshots:
     dependencies:
       pathe: 2.0.3
 
-  unstorage@2.0.0-alpha.7(db0@0.3.4(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1)))(ofetch@2.0.0-alpha.3):
+  unstorage@2.0.0-alpha.7(db0@0.3.4(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1)))(ofetch@2.0.0-alpha.3):
     optionalDependencies:
-      db0: 0.3.4(drizzle-orm@0.45.2(@types/pg@8.20.0)(pg@8.20.0)(sql.js@1.14.1))
+      db0: 0.3.4(drizzle-orm@0.45.2(@types/pg@8.15.4)(pg@8.20.0)(sql.js@1.14.1))
       ofetch: 2.0.0-alpha.3
 
   util-deprecate@1.0.2:

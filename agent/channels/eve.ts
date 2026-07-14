@@ -1,7 +1,8 @@
-import { none } from "eve/channels/auth";
+import { localDev, vercelOidc } from "eve/channels/auth";
 import { eveChannel } from "eve/channels/eve";
 
-// Local dev only: no auth. A real deployment puts auth in front of this.
+// Fail-closed: local TUI and Vercel OIDC callers only. End users talk to the
+// agent through the Discord channel (which verifies request signatures).
 export default eveChannel({
-  auth: [none()],
+  auth: [vercelOidc(), localDev()],
 });

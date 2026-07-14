@@ -6,3 +6,4 @@ dist/
 .workflow-data/
 *.tsbuildinfo
 .DS_Store
+.vercel

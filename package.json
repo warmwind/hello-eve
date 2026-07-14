@@ -17,10 +17,12 @@
     "@workflow/world-postgres": "5.0.0-beta.20",
     "ai": "7.0.11",
     "eve": "0.18.1",
-    "just-bash": "3.0.2"
+    "just-bash": "3.0.2",
+    "pg": "8.20.0"
   },
   "devDependencies": {
     "@types/node": "24.13.2",
+    "@types/pg": "8.15.4",
     "typescript": "6.0.3"
   },
   "overrides": {
