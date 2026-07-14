@@ -23,7 +23,7 @@ function accessMessage(access: DiscordAccessStatus, authorizationUrl: string): s
     return [
       `⛔ 当前金数据用户 ID：${access.identity.userId}`,
       `当前企业账户：${access.identity.billingAccountName}`,
-      "此 Agent 仅限 billing_account.name 为 im 的用户使用。",
+      "此 Agent 仅限 billing_account.name 为 IM 的用户使用。",
       `如需切换金数据账号，请重新授权：${authorizationUrl}`,
     ].join("\n");
   }

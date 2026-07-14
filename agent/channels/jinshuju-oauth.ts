@@ -21,7 +21,7 @@ function outcomeMessage(outcome: DiscordAuthorizationOutcome): string {
       "⛔ 金数据账号已授权，但无权使用此 Agent。",
       `当前金数据用户 ID：${outcome.identity.userId}`,
       `当前企业账户：${outcome.identity.billingAccountName}`,
-      "仅 billing_account.name 为 im 的用户可以继续使用。",
+      "仅 billing_account.name 为 IM 的用户可以继续使用。",
     ].join("\n");
   }
   return `金数据授权失败（${outcome.reason}），请返回 Discord 后重试。`;

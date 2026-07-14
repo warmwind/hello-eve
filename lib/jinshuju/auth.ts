@@ -15,6 +15,7 @@ import {
 
 const REFRESH_MARGIN_MS = 5 * 60_000;
 const AUTHORIZATION_TTL_MS = 10 * 60_000;
+const ALLOWED_BILLING_ACCOUNT_NAME = "IM";
 
 function oauthBaseUrl(): string {
   return (process.env.JINSHUJU_OAUTH_BASE_URL ?? "https://account.jinshuju.net").replace(
@@ -35,10 +36,6 @@ function requiredEnv(name: string): string {
 
 function requestedScopes(): string {
   return process.env.JINSHUJU_OAUTH_SCOPES?.trim() || "public users";
-}
-
-function allowedBillingAccountName(): string {
-  return process.env.JINSHUJU_ALLOWED_BILLING_ACCOUNT?.trim() || "im";
 }
 
 export function coversRequestedScopes(grantedScope: string | null): boolean {
@@ -206,7 +203,10 @@ export async function getDiscordAccessStatus(
     readProfile(principalKey),
     readToken(principalKey),
   ]);
-  if (profile && (!profile.allowed || profile.billingAccountName !== allowedBillingAccountName())) {
+  if (
+    profile &&
+    (!profile.allowed || profile.billingAccountName !== ALLOWED_BILLING_ACCOUNT_NAME)
+  ) {
     return { status: "forbidden", identity: toIdentity(profile) };
   }
   if (!profile || !token || !coversRequestedScopes(token.scope)) {
@@ -217,7 +217,7 @@ export async function getDiscordAccessStatus(
     if (!refreshed) return { status: "authorization_required" };
     try {
       const identity = await fetchIdentity(refreshed.accessToken);
-      const allowed = identity.billingAccountName === allowedBillingAccountName();
+      const allowed = identity.billingAccountName === ALLOWED_BILLING_ACCOUNT_NAME;
       await saveProfile(principalKey, { ...identity, allowed });
       if (!allowed) {
         await deleteToken(principalKey);
@@ -292,7 +292,7 @@ export async function completeDiscordAuthorization(input: {
     });
     const token = toStoredToken(response, requestedScopes());
     const identity = await fetchIdentity(token.accessToken);
-    const allowed = identity.billingAccountName === allowedBillingAccountName();
+    const allowed = identity.billingAccountName === ALLOWED_BILLING_ACCOUNT_NAME;
     if (allowed) {
       await saveToken(pending.principalKey, token);
       await saveProfile(pending.principalKey, { ...identity, allowed });
