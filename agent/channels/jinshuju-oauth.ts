@@ -4,16 +4,24 @@ import {
   type DiscordAuthorizationDelivery,
   type DiscordAuthorizationOutcome,
 } from "../../lib/jinshuju/auth.js";
+import discord from "./discord.js";
 
 const DISCORD_EPHEMERAL_MESSAGE_FLAG = 64;
 
-function outcomeMessage(outcome: DiscordAuthorizationOutcome): string {
+function outcomeMessage(
+  outcome: DiscordAuthorizationOutcome,
+  resumeStatus: "not_requested" | "started" | "failed",
+): string {
   if (outcome.status === "authorized") {
     return [
       "✅ 金数据授权成功。",
       `当前金数据用户 ID：${outcome.identity.userId}`,
       `当前企业账户：${outcome.identity.billingAccountName}`,
-      "现在可以继续使用 Agent，请重新发送刚才的请求。",
+      resumeStatus === "started"
+        ? "已恢复原消息，正在继续处理。"
+        : resumeStatus === "failed"
+          ? "自动继续处理原消息失败，请返回 Discord 后重试。"
+          : "现在可以继续使用 Agent。",
     ].join("\n");
   }
   if (outcome.status === "forbidden") {
@@ -52,7 +60,7 @@ async function postDiscordFollowup(
 
 export default defineChannel({
   routes: [
-    GET("/oauth/jinshuju/callback", async (req) => {
+    GET("/oauth/jinshuju/callback", async (req, args) => {
       const url = new URL(req.url);
       let outcome: DiscordAuthorizationOutcome;
       try {
@@ -69,7 +77,29 @@ export default defineChannel({
         });
       }
 
-      const message = outcomeMessage(outcome);
+      let resumeStatus: "not_requested" | "started" | "failed" = "not_requested";
+      if (outcome.status === "authorized" && outcome.resume.message) {
+        try {
+          await args.receive(discord, {
+            message: outcome.resume.message,
+            target: { channelId: outcome.resume.channelId },
+            auth: {
+              principalId: outcome.resume.discordUserId,
+              principalType: "user",
+              authenticator: "discord",
+              attributes: {
+                channel_id: outcome.resume.channelId,
+                guild_id: outcome.resume.guildId ?? "",
+              },
+            },
+          });
+          resumeStatus = "started";
+        } catch (error) {
+          console.error("[jinshuju] failed to resume Discord message:", error);
+          resumeStatus = "failed";
+        }
+      }
+      const message = outcomeMessage(outcome, resumeStatus);
       try {
         await postDiscordFollowup(outcome.delivery, message);
       } catch (error) {

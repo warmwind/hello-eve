@@ -13,14 +13,6 @@ export interface StoredProfile {
   allowed: boolean;
 }
 
-export interface PendingAuthorization {
-  principalKey: string;
-  verifier: string;
-  discordApplicationId: string;
-  discordInteractionToken: string;
-  expiresAt: Date;
-}
-
 let pool: Pool | undefined;
 let schemaReady: Promise<unknown> | undefined;
 
@@ -46,17 +38,6 @@ const CREATE_PROFILES_TABLE_SQL = `
     billing_account_name text NOT NULL,
     allowed boolean NOT NULL,
     validated_at timestamptz NOT NULL DEFAULT now()
-  )
-`;
-
-const CREATE_PENDING_AUTHORIZATIONS_TABLE_SQL = `
-  CREATE TABLE IF NOT EXISTS jinshuju_oauth_pending_authorizations (
-    state text PRIMARY KEY,
-    principal_key text NOT NULL,
-    verifier text NOT NULL,
-    discord_application_id text NOT NULL,
-    discord_interaction_token text NOT NULL,
-    expires_at timestamptz NOT NULL
   )
 `;
 
@@ -115,7 +96,6 @@ async function withClient<T>(fn: (client: PoolClient) => Promise<T>): Promise<T>
     await Promise.all([
       postgresPool.query(ADD_SCOPE_COLUMN_SQL),
       postgresPool.query(CREATE_PROFILES_TABLE_SQL),
-      postgresPool.query(CREATE_PENDING_AUTHORIZATIONS_TABLE_SQL),
     ]);
   })();
   await schemaReady;
@@ -208,63 +188,6 @@ export async function saveProfile(
       profile.billingAccountName,
       profile.allowed,
     ]);
-  });
-}
-
-export async function savePendingAuthorization(
-  state: string,
-  pending: PendingAuthorization,
-): Promise<void> {
-  await withClient(async (client) => {
-    await client.query(
-      `DELETE FROM jinshuju_oauth_pending_authorizations WHERE expires_at <= now()`,
-    );
-    await client.query(
-      `INSERT INTO jinshuju_oauth_pending_authorizations
-         (state, principal_key, verifier, discord_application_id, discord_interaction_token, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [
-        state,
-        pending.principalKey,
-        pending.verifier,
-        pending.discordApplicationId,
-        pending.discordInteractionToken,
-        pending.expiresAt,
-      ],
-    );
-  });
-}
-
-export async function consumePendingAuthorization(
-  state: string,
-): Promise<PendingAuthorization | null> {
-  return withClient(async (client) => {
-    const res = await client.query(
-      `DELETE FROM jinshuju_oauth_pending_authorizations
-       WHERE state = $1
-       RETURNING principal_key, verifier, discord_application_id,
-                 discord_interaction_token, expires_at`,
-      [state],
-    );
-    const row = res.rows[0] as
-      | {
-          principal_key: string;
-          verifier: string;
-          discord_application_id: string;
-          discord_interaction_token: string;
-          expires_at: Date | string;
-        }
-      | undefined;
-    if (!row) return null;
-    const expiresAt = new Date(row.expires_at);
-    if (expiresAt.getTime() <= Date.now()) return null;
-    return {
-      principalKey: row.principal_key,
-      verifier: row.verifier,
-      discordApplicationId: row.discord_application_id,
-      discordInteractionToken: row.discord_interaction_token,
-      expiresAt,
-    };
   });
 }
 

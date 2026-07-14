@@ -1,20 +1,21 @@
 import { createHash, randomBytes } from "node:crypto";
 import {
   consumePendingAuthorization,
+  savePendingAuthorization,
+  type PendingAuthorization,
+} from "./pending-authorization-store.js";
+import {
   deleteToken,
   readProfile,
   readToken,
-  savePendingAuthorization,
   saveProfile,
   saveToken,
   withTokenLock,
-  type PendingAuthorization,
   type StoredProfile,
   type StoredToken,
 } from "./token-store.js";
 
 const REFRESH_MARGIN_MS = 5 * 60_000;
-const AUTHORIZATION_TTL_MS = 10 * 60_000;
 const ALLOWED_BILLING_ACCOUNT_NAME = "IM";
 
 function oauthBaseUrl(): string {
@@ -82,22 +83,33 @@ export interface DiscordAuthorizationDelivery {
   interactionToken: string;
 }
 
-export type DiscordAuthorizationOutcome =
+export interface DiscordAuthorizationResume {
+  discordUserId: string;
+  channelId: string;
+  guildId: string | null;
+  message: string | null;
+}
+
+interface DiscordAuthorizationContext {
+  delivery: DiscordAuthorizationDelivery;
+  resume: DiscordAuthorizationResume;
+}
+
+export type DiscordAuthorizationOutcome = (
   | {
       status: "authorized";
       identity: JinshujuIdentity;
-      delivery: DiscordAuthorizationDelivery;
     }
   | {
       status: "forbidden";
       identity: JinshujuIdentity;
-      delivery: DiscordAuthorizationDelivery;
     }
   | {
       status: "failed";
       reason: string;
-      delivery: DiscordAuthorizationDelivery;
-    };
+    }
+) &
+  DiscordAuthorizationContext;
 
 async function requestToken(params: Record<string, string>): Promise<TokenResponse> {
   const clientSecret = process.env.JINSHUJU_CLIENT_SECRET?.trim();
@@ -237,6 +249,9 @@ export async function startDiscordAuthorization(input: {
   discordUserId: string;
   discordApplicationId: string;
   discordInteractionToken: string;
+  discordChannelId: string;
+  discordGuildId: string | null;
+  message: string | null;
 }): Promise<string> {
   const verifier = randomBytes(32).toString("base64url");
   const challenge = createHash("sha256").update(verifier).digest("base64url");
@@ -246,7 +261,10 @@ export async function startDiscordAuthorization(input: {
     verifier,
     discordApplicationId: input.discordApplicationId,
     discordInteractionToken: input.discordInteractionToken,
-    expiresAt: new Date(Date.now() + AUTHORIZATION_TTL_MS),
+    discordUserId: input.discordUserId,
+    discordChannelId: input.discordChannelId,
+    discordGuildId: input.discordGuildId,
+    message: input.message,
   });
 
   const authorizeUrl = new URL(`${oauthBaseUrl()}/oauth/authorize`);
@@ -267,6 +285,15 @@ function deliveryFrom(pending: PendingAuthorization): DiscordAuthorizationDelive
   };
 }
 
+function resumeFrom(pending: PendingAuthorization): DiscordAuthorizationResume {
+  return {
+    discordUserId: pending.discordUserId,
+    channelId: pending.discordChannelId,
+    guildId: pending.discordGuildId,
+    message: pending.message,
+  };
+}
+
 export async function completeDiscordAuthorization(input: {
   code: string | null;
   state: string | null;
@@ -276,11 +303,12 @@ export async function completeDiscordAuthorization(input: {
   const pending = await consumePendingAuthorization(input.state);
   if (!pending) throw new Error("OAuth state is invalid, expired, or already used.");
   const delivery = deliveryFrom(pending);
+  const resume = resumeFrom(pending);
   if (input.error) {
-    return { status: "failed", reason: input.error, delivery };
+    return { status: "failed", reason: input.error, delivery, resume };
   }
   if (!input.code) {
-    return { status: "failed", reason: "missing_code", delivery };
+    return { status: "failed", reason: "missing_code", delivery, resume };
   }
 
   try {
@@ -296,13 +324,18 @@ export async function completeDiscordAuthorization(input: {
     if (allowed) {
       await saveToken(pending.principalKey, token);
       await saveProfile(pending.principalKey, { ...identity, allowed });
-      return { status: "authorized", identity, delivery };
+      return { status: "authorized", identity, delivery, resume };
     }
     await saveProfile(pending.principalKey, { ...identity, allowed });
     await deleteToken(pending.principalKey);
-    return { status: "forbidden", identity, delivery };
+    return { status: "forbidden", identity, delivery, resume };
   } catch (error) {
     console.error("[jinshuju] OAuth completion failed:", error);
-    return { status: "failed", reason: "identity_verification_failed", delivery };
+    return {
+      status: "failed",
+      reason: "identity_verification_failed",
+      delivery,
+      resume,
+    };
   }
 }

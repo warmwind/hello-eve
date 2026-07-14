@@ -1,6 +1,8 @@
 import {
   DISCORD_EPHEMERAL_MESSAGE_FLAG,
   DISCORD_INTERACTION_RESPONSE_TYPE,
+  DISCORD_INTERACTION_TYPE,
+  commandInteractionMessage,
   discordChannel,
   parseDiscordInteraction,
   verifyDiscordRequest,
@@ -18,7 +20,11 @@ const credentials = {
   publicKey: () => process.env.DISCORD_PUBLIC_KEY ?? "",
 };
 
-function accessMessage(access: DiscordAccessStatus, authorizationUrl: string): string {
+function accessMessage(
+  access: DiscordAccessStatus,
+  authorizationUrl: string,
+  willResume: boolean,
+): string {
   if (access.status === "forbidden") {
     return [
       `⛔ 当前金数据用户 ID：${access.identity.userId}`,
@@ -30,7 +36,9 @@ function accessMessage(access: DiscordAccessStatus, authorizationUrl: string): s
   return [
     "🔐 使用此 Agent 前需要先授权金数据账号。",
     authorizationUrl,
-    "授权完成后会显示当前金数据用户 ID；请随后重新发送原请求。",
+    willResume
+      ? "授权完成后会显示当前金数据用户 ID，并自动继续处理当前请求。"
+      : "授权完成后会显示当前金数据用户 ID；请随后重新操作当前交互。",
   ].join("\n");
 }
 
@@ -93,12 +101,19 @@ const gatedRoute = {
       if (access.status === "authorized") {
         return handleVerifiedCommand(req, args);
       }
+      const pendingMessage =
+        interaction.type === DISCORD_INTERACTION_TYPE.APPLICATION_COMMAND
+          ? commandInteractionMessage(interaction)
+          : null;
       const authorizationUrl = await startDiscordAuthorization({
         discordUserId: interaction.user.id,
         discordApplicationId: interaction.applicationId,
         discordInteractionToken: interaction.token,
+        discordChannelId: interaction.channelId,
+        discordGuildId: interaction.guildId ?? null,
+        message: pendingMessage,
       });
-      return ephemeralResponse(accessMessage(access, authorizationUrl));
+      return ephemeralResponse(accessMessage(access, authorizationUrl, pendingMessage !== null));
     } catch (error) {
       console.error("[jinshuju] access gate failed:", error);
       return ephemeralResponse("金数据授权服务暂时不可用，请稍后重试。");

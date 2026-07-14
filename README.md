@@ -55,7 +55,10 @@ How the flow works:
 3. The callback exchanges the code, calls `GET /api/v1/me` and
    `GET /api/v1/billing_account`, and stores the user-scoped result in
    Postgres. Discord and the browser both display the current Jinshuju user ID.
-   Users outside the `IM` billing account remain blocked.
+   For an `IM` user, the callback automatically resumes the original Discord
+   command. The encrypted pending command is consumed atomically from Redis or
+   expires after ten minutes; users outside the `IM` billing account remain
+   blocked.
 
 Setup:
 
@@ -65,6 +68,8 @@ Setup:
 2. Fill `JINSHUJU_CLIENT_ID`, `JINSHUJU_CLIENT_SECRET`,
    `JINSHUJU_REDIRECT_URI`, and a reachable Postgres URL in `.env` (see
    `.env.example`).
+3. Connect an Upstash Redis database and provide `KV_REST_API_URL` and
+   `KV_REST_API_TOKEN` (the Vercel Marketplace integration injects both).
 
 Scope changes are handled automatically: a stored token granted under a
 narrower scope set than `JINSHUJU_OAUTH_SCOPES` triggers a fresh consent
