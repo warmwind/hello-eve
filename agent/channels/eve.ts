@@ -1,8 +1,17 @@
-import { localDev, vercelOidc } from "eve/channels/auth";
+import { localDev, oidc, vercelOidc } from "eve/channels/auth";
 import { eveChannel } from "eve/channels/eve";
 
-// Fail-closed: local TUI and Vercel OIDC callers only. End users talk to the
-// agent through the Discord channel (which verifies request signatures).
+const oktaIssuer = process.env.OKTA_ISSUER?.replace(/\/+$/, "");
+const oktaAudience = process.env.OKTA_AUDIENCE;
+const oktaAuth =
+  oktaIssuer && oktaAudience
+    ? oidc({
+        issuer: oktaIssuer,
+        audiences: [oktaAudience],
+      })
+    : null;
+
+// Fail-closed: Vercel workloads, configured Okta callers, and localhost only.
 export default eveChannel({
-  auth: [vercelOidc(), localDev()],
+  auth: [vercelOidc(), ...(oktaAuth ? [oktaAuth] : []), localDev()],
 });

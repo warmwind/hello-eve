@@ -38,42 +38,30 @@ curl -X POST http://localhost:3000/eve/v1/session \
   -d '{"message":"Reply with exactly: pong"}'
 ```
 
-## Jinshuju (金数据) access gate
+## Okta OIDC route-auth test
 
-Every Discord user must authorize a Jinshuju account before the agent handles
-their request. OAuth runs against `account.jinshuju.net`; after the callback,
-the agent reads the current identity from Jinshuju's REST API and grants access
-only when `billing_account.name` is `IM`.
+The `/oidc-test` page is a browser-only test harness for Eve's inbound route
+authentication. It uses Okta Authorization Code with PKCE to obtain an access
+token, then sends that token as `Authorization: Bearer ...` to
+`POST /eve/v1/session`. The agent validates the JWT with Eve's built-in
+`oidc()` verifier before model execution.
 
-How the flow works:
+1. Create an Okta Integrator Free Plan org and use the `default` Custom
+   Authorization Server. Its default audience is normally `api://default`.
+2. Create an OIDC **Single-Page Application** with Authorization Code and PKCE.
+3. Register `<deployment-origin>/auth/oidc/callback` as a sign-in redirect URI.
+   For local testing, also register
+   `http://localhost:3000/auth/oidc/callback`.
+4. Add each test origin as an Okta Trusted Origin with CORS enabled so the page
+   can call the token and UserInfo endpoints.
+5. Set `OKTA_ISSUER`, `OKTA_CLIENT_ID`, and `OKTA_AUDIENCE` in Vercel, redeploy,
+   then open `<deployment-origin>/oidc-test`.
 
-1. The Discord command gate checks the caller's stored authorization. A new or
-   expired authorization makes the agent return only a private sign-in link
-   generated with PKCE S256.
-2. The user signs in on account.jinshuju.net and consents. The provider
-   redirects to the registered `/oauth/jinshuju/callback` route.
-3. The callback exchanges the code, calls `GET /api/v1/me` and
-   `GET /api/v1/billing_account`, and stores the user-scoped result in
-   Postgres. Discord and the browser both display the current Jinshuju user ID.
-   For an `IM` user, the callback automatically resumes the original Discord
-   command. The encrypted pending command is consumed atomically from Redis or
-   expires after ten minutes; users outside the `IM` billing account remain
-   blocked.
-
-Setup:
-
-1. Register an application on account.jinshuju.net (`/oauth/applications`,
-   needs an oauth-admin account): redirect_uri
-   `<public base URL>/oauth/jinshuju/callback`, scopes `public users`.
-2. Fill `JINSHUJU_CLIENT_ID`, `JINSHUJU_CLIENT_SECRET`,
-   `JINSHUJU_REDIRECT_URI`, and a reachable Postgres URL in `.env` (see
-   `.env.example`).
-3. Connect an Upstash Redis database and provide `KV_REST_API_URL` and
-   `KV_REST_API_TOKEN` (the Vercel Marketplace integration injects both).
-
-Scope changes are handled automatically: a stored token granted under a
-narrower scope set than `JINSHUJU_OAUTH_SCOPES` triggers a fresh consent
-instead of allowing the request through.
+The page keeps the access token in `sessionStorage`, so closing its browser tab
+clears the test credential. On a deployed URL, the anonymous test should return
+401 and the authenticated test should start an Eve session. Localhost remains
+open through `localDev()`, so the anonymous button does not prove rejection
+when testing locally.
 
 ## Workflow world
 
