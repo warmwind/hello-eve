@@ -24,8 +24,8 @@ importers:
         specifier: 7.0.11
         version: 7.0.11(zod@4.4.3)
       eve:
-        specifier: 0.18.1
-        version: 0.18.1(@upstash/redis@1.38.0)(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(@upstash/redis@1.38.0)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2)
+        specifier: 0.24.3
+        version: 0.24.3(@upstash/redis@1.38.0)(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(@upstash/redis@1.38.0)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2)
       just-bash:
         specifier: 3.0.2
         version: 3.0.2
@@ -593,8 +593,8 @@ packages:
     resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
     engines: {node: '>=6'}
 
-  eve@0.18.1:
-    resolution: {integrity: sha512-OY0U4+vXMjHjUj2PklEJYUCwo1yOy1OpyHlPGx4yDSmqEfiRBLBgzVJIsCTtPwkhRIEb2juAN05TaBSi9CHx7g==}
+  eve@0.24.3:
+    resolution: {integrity: sha512-qdNUjF1tlEJHVEsmnuSBHkJToDo0VjXgiHX5KaWhbHxBfsHahPGVI+/ecW+DHvsLlzmw58/rk2ypQXdAkul4uA==}
     engines: {node: '>=24'}
     hasBin: true
     peerDependencies:
@@ -1615,7 +1615,7 @@ snapshots:
 
   escalade@3.2.0: {}
 
-  eve@0.18.1(@upstash/redis@1.38.0)(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(@upstash/redis@1.38.0)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2):
+  eve@0.24.3(@upstash/redis@1.38.0)(@vercel/queue@0.3.1)(ai@7.0.11(zod@4.4.3))(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(@upstash/redis@1.38.0)(pg@8.20.0)(sql.js@1.14.1))(just-bash@3.0.2):
     dependencies:
       ai: 7.0.11(zod@4.4.3)
       nitro: 3.0.260610-beta(@upstash/redis@1.38.0)(@vercel/queue@0.3.1)(dotenv@17.3.1)(drizzle-orm@0.45.2(@types/pg@8.15.4)(@upstash/redis@1.38.0)(pg@8.20.0)(sql.js@1.14.1))

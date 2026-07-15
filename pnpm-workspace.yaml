@@ -2,5 +2,7 @@ allowBuilds:
   '@mongodb-js/zstd': true
   cbor-extract: true
   node-liblzma: true
+minimumReleaseAgeExclude:
+  - eve@0.24.3
 overrides:
   ai: 7.0.11
