@@ -13,7 +13,7 @@ hello-eve/
     ├── instructions.md # the always-on system prompt
     ├── sandbox.ts      # just-bash execution backend
     └── channels/
-        └── eve.ts      # HTTP/NDJSON channel, no auth (local dev only)
+        └── eve.ts      # HTTP/NDJSON channel, Jinshuju UAT OIDC + local auth
 ```
 
 ## Model / external calls
@@ -38,42 +38,17 @@ curl -X POST http://localhost:3000/eve/v1/session \
   -d '{"message":"Reply with exactly: pong"}'
 ```
 
-## Jinshuju (金数据) access gate
+## Eveland route auth
 
-Every Discord user must authorize a Jinshuju account before the agent handles
-their request. OAuth runs against `account.jinshuju.net`; after the callback,
-the agent reads the current identity from Jinshuju's REST API and grants access
-only when `billing_account.name` is `IM`.
-
-How the flow works:
-
-1. The Discord command gate checks the caller's stored authorization. A new or
-   expired authorization makes the agent return only a private sign-in link
-   generated with PKCE S256.
-2. The user signs in on account.jinshuju.net and consents. The provider
-   redirects to the registered `/oauth/jinshuju/callback` route.
-3. The callback exchanges the code, calls `GET /api/v1/me` and
-   `GET /api/v1/billing_account`, and stores the user-scoped result in
-   Postgres. Discord and the browser both display the current Jinshuju user ID.
-   For an `IM` user, the callback automatically resumes the original Discord
-   command. The encrypted pending command is consumed atomically from Redis or
-   expires after ten minutes; users outside the `IM` billing account remain
-   blocked.
-
-Setup:
-
-1. Register an application on account.jinshuju.net (`/oauth/applications`,
-   needs an oauth-admin account): redirect_uri
-   `<public base URL>/oauth/jinshuju/callback`, scopes `public users`.
-2. Fill `JINSHUJU_CLIENT_ID`, `JINSHUJU_CLIENT_SECRET`,
-   `JINSHUJU_REDIRECT_URI`, and a reachable Postgres URL in `.env` (see
-   `.env.example`).
-3. Connect an Upstash Redis database and provide `KV_REST_API_URL` and
-   `KV_REST_API_TOKEN` (the Vercel Marketplace integration injects both).
-
-Scope changes are handled automatically: a stored token granted under a
-narrower scope set than `JINSHUJU_OAUTH_SCOPES` triggers a fresh consent
-instead of allowing the request through.
+The Eve HTTP channel uses `jinshujuOidc()` before the local-development
+fallback. It accepts the opaque access token obtained by Eveland from
+`https://account.uat.jinshuju.net`, verifies it against the provider's
+`/oauth/userinfo` endpoint, and maps its `sub` to the Eve caller identity.
+The OAuth client ID, client secret, scopes, PKCE flow, and callback remain
+client-side Agent Connection configuration in Eveland and are not stored in
+this repository or deployed to the Agent. The provider-specific Route Auth
+verifier is self-contained in `lib/jinshuju-oidc.ts` and has no token storage
+or OAuth client dependencies.
 
 ## Workflow world
 
