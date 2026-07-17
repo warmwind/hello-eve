@@ -1,12 +1,17 @@
-import { localDev } from "eve/channels/auth";
-import { eveChannel } from "eve/channels/eve";
-import { jinshujuOidc } from "@jinshuju/eve-oidc";
 
-// Fail-closed: Jinshuju UAT users and the local TUI only. End users can also
-// talk to the agent through the Discord channel, which verifies signatures.
+import { localDev, oidc, vercelOidc } from "eve/channels/auth";
+import { eveChannel } from "eve/channels/eve";
+
+// Fail-closed: Vercel OIDC callers, Okta-issued bearer tokens, and the local
+// TUI only. End users talk to the agent through the Discord channel (which
+// verifies request signatures).
 export default eveChannel({
   auth: [
-    jinshujuOidc({ issuer: "https://account.uat.jinshuju.net" }),
+    vercelOidc(),
+    oidc({
+      issuer: process.env.OKTA_ISSUER!,
+      audiences: [process.env.OKTA_AUDIENCE!],
+    }),
     localDev(),
   ],
 });
