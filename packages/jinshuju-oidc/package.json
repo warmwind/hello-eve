@@ -1,0 +1,40 @@
+{
+  "name": "@jinshuju/eve-oidc",
+  "version": "0.1.1",
+  "description": "Jinshuju OIDC route authentication for Eve",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "pnpm run build",
+    "test": "pnpm run build && node --test test/*.test.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "eve": "^0.24.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.2",
+    "eve": "0.24.3",
+    "typescript": "6.0.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.jinshuju.co/repository/jsjnpm/"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED"
+}

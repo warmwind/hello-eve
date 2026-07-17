@@ -1,13 +1,14 @@
 import { extractBearerToken, type AuthFn } from "eve/channels/auth";
 
+const DEFAULT_ISSUER = "https://account.jinshuju.net";
 const STANDARD_CLAIMS = new Set(["aud", "exp", "iat", "iss", "jti", "nbf", "sub"]);
 
 export interface JinshujuOidcOptions {
-  readonly issuer: string;
+  readonly issuer?: string;
 }
 
-export function jinshujuOidc(options: JinshujuOidcOptions): AuthFn<Request> {
-  const issuer = options.issuer.replace(/\/+$/, "");
+export function jinshujuOidc(options: JinshujuOidcOptions = {}): AuthFn<Request> {
+  const issuer = (options.issuer ?? DEFAULT_ISSUER).replace(/\/+$/, "");
   const userInfoEndpoint = `${issuer}/oauth/userinfo`;
 
   return async (request) => {

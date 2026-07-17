@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { jinshujuOidc } from "../lib/jinshuju-oidc.ts";
+import { jinshujuOidc } from "../dist/index.js";
 
-const issuer = "https://account.uat.jinshuju.net";
+const defaultIssuer = "https://account.jinshuju.net";
 
 test("jinshujuOidc authenticates an opaque access token through UserInfo", async (t) => {
   let userInfoRequest;
@@ -17,7 +17,7 @@ test("jinshujuOidc authenticates an opaque access token through UserInfo", async
     });
   });
 
-  const authenticate = jinshujuOidc({ issuer });
+  const authenticate = jinshujuOidc();
   const sessionAuth = await authenticate(
     new Request("https://hello-eve.agent.example/eve/v1/session", {
       headers: { authorization: "Bearer opaque-access-token" },
@@ -31,18 +31,19 @@ test("jinshujuOidc authenticates an opaque access token through UserInfo", async
       roles: ["admin"],
     },
     authenticator: "oidc",
-    issuer,
-    principalId: `${issuer}:user-42`,
+    issuer: defaultIssuer,
+    principalId: `${defaultIssuer}:user-42`,
     principalType: "user",
     subject: "user-42",
   });
-  assert.equal(userInfoRequest.input, `${issuer}/oauth/userinfo`);
+  assert.equal(userInfoRequest.input, `${defaultIssuer}/oauth/userinfo`);
   const headers = new Headers(userInfoRequest.init.headers);
   assert.equal(headers.get("accept"), "application/json");
   assert.equal(headers.get("authorization"), "Bearer opaque-access-token");
 });
 
 test("jinshujuOidc skips missing and rejected bearer credentials", async (t) => {
+  const issuer = "https://account.example.com";
   let requestCount = 0;
   t.mock.method(globalThis, "fetch", async () => {
     requestCount += 1;

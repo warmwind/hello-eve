@@ -8,12 +8,14 @@
   },
   "scripts": {
     "dev": "eve dev",
-    "build": "eve build",
+    "build": "pnpm --filter @jinshuju/eve-oidc build && eve build",
     "start": "eve start",
-    "test": "node --test test/*.test.mjs",
-    "typecheck": "tsc"
+    "test": "pnpm --filter @jinshuju/eve-oidc test",
+    "typecheck": "pnpm --filter @jinshuju/eve-oidc build && tsc",
+    "prepare": "pnpm --filter @jinshuju/eve-oidc build"
   },
   "dependencies": {
+    "@jinshuju/eve-oidc": "workspace:*",
     "@ai-sdk/anthropic": "4.0.5",
     "@workflow/world-postgres": "5.0.0-beta.20",
     "ai": "7.0.11",

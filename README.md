@@ -40,15 +40,14 @@ curl -X POST http://localhost:3000/eve/v1/session \
 
 ## Eveland route auth
 
-The Eve HTTP channel uses `jinshujuOidc()` before the local-development
-fallback. It accepts the opaque access token obtained by Eveland from
+The Eve HTTP channel uses `jinshujuOidc()` from `@jinshuju/eve-oidc` before
+the local-development fallback. It accepts the opaque access token obtained by Eveland from
 `https://account.uat.jinshuju.net`, verifies it against the provider's
 `/oauth/userinfo` endpoint, and maps its `sub` to the Eve caller identity.
 The OAuth client ID, client secret, scopes, PKCE flow, and callback remain
 client-side Agent Connection configuration in Eveland and are not stored in
 this repository or deployed to the Agent. The provider-specific Route Auth
-verifier is self-contained in `lib/jinshuju-oidc.ts` and has no token storage
-or OAuth client dependencies.
+verifier has no token storage or OAuth client dependencies.
 
 ## Workflow world
 

@@ -1,3 +1,6 @@
+packages:
+  - packages/*
+
 allowBuilds:
   '@mongodb-js/zstd': true
   cbor-extract: true
