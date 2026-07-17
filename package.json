@@ -8,26 +8,21 @@
   },
   "scripts": {
     "dev": "eve dev",
-    "build": "pnpm --filter @jinshuju/eve-oidc build && eve build",
+    "build": "eve build",
     "start": "eve start",
-    "test": "pnpm --filter @jinshuju/eve-oidc test",
-    "typecheck": "pnpm --filter @jinshuju/eve-oidc build && tsc",
-    "prepare": "pnpm --filter @jinshuju/eve-oidc build"
+    "typecheck": "tsc"
   },
   "dependencies": {
-    "@jinshuju/eve-oidc": "workspace:*",
+    "@jinshuju/eve-oidc": "0.1.1",
     "@ai-sdk/anthropic": "4.0.5",
     "@workflow/world-postgres": "5.0.0-beta.20",
-    "ai": "7.0.11",
+    "ai": "7.0.26",
     "eve": "0.24.3",
     "just-bash": "3.0.2"
   },
   "devDependencies": {
     "@types/node": "24.13.2",
     "typescript": "6.0.3"
-  },
-  "overrides": {
-    "ai": "7.0.11"
   },
   "engines": {
     "node": "24.x"

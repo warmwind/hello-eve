@@ -26,8 +26,8 @@ outbound model calls. Swap the `baseURL`/model for real Anthropic if you prefer.
 ## Run
 
 ```bash
-pnpm install
-pnpm dev          # eve dev — starts the local agent server + TUI
+npm install
+npm run dev       # eve dev — starts the local agent server + TUI
 ```
 
 Then talk to it over the eve channel (default dev server on port 3000):
@@ -44,9 +44,12 @@ The Eve HTTP channel uses `jinshujuOidc()` from `@jinshuju/eve-oidc` before
 the local-development fallback. It accepts the opaque access token obtained by Eveland from
 `https://account.uat.jinshuju.net`, verifies it against the provider's
 `/oauth/userinfo` endpoint, and maps its `sub` to the Eve caller identity.
-The OAuth client ID, client secret, scopes, PKCE flow, and callback remain
-client-side Agent Connection configuration in Eveland and are not stored in
-this repository or deployed to the Agent. The provider-specific Route Auth
+The verifier package is installed from the Jinshuju npm registry configured by
+the repository's non-secret `.npmrc`; its implementation is not vendored into
+this Agent repository.
+The OAuth client ID, client secret, scopes, PKCE flow, and callback are owned by
+Eveland's server-managed Agent Connection and are not stored in this repository
+or deployed to the Agent. The provider-specific Route Auth
 verifier has no token storage or OAuth client dependencies.
 
 ## Workflow world
