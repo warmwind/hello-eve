@@ -1,12 +1,14 @@
-import { localDev } from "eve/channels/auth";
+import { httpBasic, localDev } from "eve/channels/auth";
 import { eveChannel } from "eve/channels/eve";
-import { jinshujuOidc } from "@jinshuju/eve-oidc";
 
-// Fail-closed: Jinshuju UAT users and the local TUI only. End users can also
+// Fail-closed: HTTP Basic callers and the local TUI only. End users can also
 // talk to the agent through the Discord channel, which verifies signatures.
 export default eveChannel({
   auth: [
-    jinshujuOidc({ issuer: "https://account.uat.jinshuju.net" }),
+    httpBasic({
+      username: process.env.ROUTE_AUTH_BASIC_USERNAME!,
+      password: process.env.ROUTE_AUTH_BASIC_PASSWORD!,
+    }),
     localDev(),
   ],
 });
